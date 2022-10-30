@@ -1,0 +1,111 @@
+{
+  "error" : {
+    "status" : 401,
+    "message" : "Permissions missing"
+  }
+}{
+  "error" : {
+    "status" : 401,
+    "message" : "Permissions missing"
+  }
+}{
+  "timestamp" : 1666281842855,
+  "context" : null,
+  "progress_ms" : 130190,
+  "item" : {
+    "album" : {
+      "album_type" : "album",
+      "artists" : [ {
+        "external_urls" : {
+          "spotify" : "https://open.spotify.com/artist/3gmX5TSkgW4iu2dm71QzWr"
+        },
+        "href" : "https://api.spotify.com/v1/artists/3gmX5TSkgW4iu2dm71QzWr",
+        "id" : "3gmX5TSkgW4iu2dm71QzWr",
+        "name" : "Move 78",
+        "type" : "artist",
+        "uri" : "spotify:artist:3gmX5TSkgW4iu2dm71QzWr"
+      }, {
+        "external_urls" : {
+          "spotify" : "https://open.spotify.com/artist/0lBiVIJxGVqGyNkfjGuZKi"
+        },
+        "href" : "https://api.spotify.com/v1/artists/0lBiVIJxGVqGyNkfjGuZKi",
+        "id" : "0lBiVIJxGVqGyNkfjGuZKi",
+        "name" : "Aver",
+        "type" : "artist",
+        "uri" : "spotify:artist:0lBiVIJxGVqGyNkfjGuZKi"
+      } ],
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/album/4Az5HUdJweevuxRcqaMT0M"
+      },
+      "href" : "https://api.spotify.com/v1/albums/4Az5HUdJweevuxRcqaMT0M",
+      "id" : "4Az5HUdJweevuxRcqaMT0M",
+      "images" : [ {
+        "height" : 640,
+        "url" : "https://i.scdn.co/image/ab67616d0000b2731abe7dd21b496ea892768b7c",
+        "width" : 640
+      }, {
+        "height" : 300,
+        "url" : "https://i.scdn.co/image/ab67616d00001e021abe7dd21b496ea892768b7c",
+        "width" : 300
+      }, {
+        "height" : 64,
+        "url" : "https://i.scdn.co/image/ab67616d000048511abe7dd21b496ea892768b7c",
+        "width" : 64
+      } ],
+      "name" : "The Algorithm Smiles Upon You",
+      "release_date" : "2021-04-05",
+      "release_date_precision" : "day",
+      "total_tracks" : 8,
+      "type" : "album",
+      "uri" : "spotify:album:4Az5HUdJweevuxRcqaMT0M"
+    },
+    "artists" : [ {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/3gmX5TSkgW4iu2dm71QzWr"
+      },
+      "href" : "https://api.spotify.com/v1/artists/3gmX5TSkgW4iu2dm71QzWr",
+      "id" : "3gmX5TSkgW4iu2dm71QzWr",
+      "name" : "Move 78",
+      "type" : "artist",
+      "uri" : "spotify:artist:3gmX5TSkgW4iu2dm71QzWr"
+    }, {
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/artist/0lBiVIJxGVqGyNkfjGuZKi"
+      },
+      "href" : "https://api.spotify.com/v1/artists/0lBiVIJxGVqGyNkfjGuZKi",
+      "id" : "0lBiVIJxGVqGyNkfjGuZKi",
+      "name" : "Aver",
+      "type" : "artist",
+      "uri" : "spotify:artist:0lBiVIJxGVqGyNkfjGuZKi"
+    } ],
+    "disc_number" : 1,
+    "duration_ms" : 272000,
+    "explicit" : false,
+    "external_ids" : {
+      "isrc" : "DEQ022011001"
+    },
+    "external_urls" : {
+      "spotify" : "https://open.spotify.com/track/54fg2iMaPpysn7VYeBGTE3"
+    },
+    "href" : "https://api.spotify.com/v1/tracks/54fg2iMaPpysn7VYeBGTE3",
+    "id" : "54fg2iMaPpysn7VYeBGTE3",
+    "is_local" : false,
+    "is_playable" : true,
+    "name" : "Middling",
+    "popularity" : 50,
+    "preview_url" : "https://p.scdn.co/mp3-preview/e77fafc0e80eef46f104421119346dc2f480dfc9?cid=774b29d4f13844c495f206cafdad9c86",
+    "track_number" : 2,
+    "type" : "track",
+    "uri" : "spotify:track:54fg2iMaPpysn7VYeBGTE3"
+  },
+  "currently_playing_type" : "track",
+  "actions" : {
+    "disallows" : {
+      "resuming" : true,
+      "toggling_repeat_context" : true,
+      "toggling_repeat_track" : true,
+      "toggling_shuffle" : true
+    }
+  },
+  "is_playing" : true
+}
