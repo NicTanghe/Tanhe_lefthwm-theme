@@ -12,5 +12,6 @@ leftwm-command UnloadTheme
 pkill compton
 pkill picom
 pkill polybar
+eww -c "$HOME"/.config/eww/eww-bar kill
 pkill dunst
 #pkill xss-lock

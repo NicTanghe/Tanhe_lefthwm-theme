@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -u
+
+log_file="${XDG_RUNTIME_DIR:-/tmp}/flameshot-leftwm.log"
+
+unset WAYLAND_DISPLAY
+export XDG_SESSION_TYPE=x11
+export QT_QPA_PLATFORM=xcb
+
+if ! pgrep -x flameshot >/dev/null 2>&1; then
+    flameshot >"$log_file" 2>&1 &
+    sleep 0.5
+fi
+
+exec flameshot gui -c

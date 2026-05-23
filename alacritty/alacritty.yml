@@ -12,6 +12,12 @@ window:
   padding:
     x: 60
     y: 45
+
+shell:
+  program: /usr/bin/fish
+  args:
+    - -l
+
 colors:
   primary:
     background: '#282a36'

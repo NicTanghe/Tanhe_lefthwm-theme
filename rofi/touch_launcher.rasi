@@ -4,6 +4,13 @@
  * Theme Repo           : https://github.com/lr-tech/rofi-themes-collection
  *******************************************************************************/
 
+configuration {
+    modi: "drun";
+    display-drun: "Applications";
+    show-icons: true;
+    icon-theme: "Yaru";
+}
+
 * {
     font: "Montserrat 9";
 
@@ -43,22 +50,20 @@ inputbar {
   border-radius:  2px;
   border-color:   @bg3;
 
-  children: [icon-search,entry];
+  children: [entry];
 }
 
 prompt {
   enabled:  false;
 }
 
-icon-search {
-  expand:   false;
-  filename: "search";
-  vertical-align: 0.5;
-}
-
 entry {
+  text-color:          #ffb86c;
   placeholder:        "Search";
-  placeholder-color:  @bg2;
+  placeholder-color:  #8a8f98;
+  cursor-color:       #8a8f98;
+  cursor-width:       2px;
+  hide-cursor-on-empty: true;
 }
 
 listview {

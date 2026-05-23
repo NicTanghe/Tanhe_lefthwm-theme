@@ -2,7 +2,20 @@
 
 export SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 export QT_QPA_PLATFORMTHEME="qt5ct"
+export XDG_SESSION_TYPE=x11
+export GDK_BACKEND=x11
+unset WAYLAND_DISPLAY
+export PATH="$HOME/.cargo/bin:$PATH"
+EWW_CONFIG="$SCRIPTPATH/eww/eww-bar"
 autorandr -c
+
+# Keep both displays top-aligned. Flameshot's X11 overlay can be offset when
+# monitors use different Y origins, for example HDMI-0 at +0+180.
+if [ -x "$(command -v xrandr)" ]; then
+  xrandr \
+    --output HDMI-0 --mode 1920x1080 --scale 1x1 --pos 0x0 \
+    --output DP-0 --primary --mode 2560x1440 --scale 1x1 --pos 1920x0
+fi
 
 # Down the last running theme
 if [ -f "/tmp/leftwm-theme-down" ]; then
@@ -12,34 +25,41 @@ fi
 ln -s "$SCRIPTPATH"/down /tmp/leftwm-theme-down
 
 # start eww daemon
-eww daemon &
+mkdir -p "$HOME"/.config/eww
+ln -sfn "$EWW_CONFIG" "$HOME"/.config/eww/eww-bar
+eww -c "$EWW_CONFIG" daemon &
 
 
 # Boot picom or compton if it exists
 if [ -x "$(command -v picom)" ]; then
-  picom --experimental-backends --config "$SCRIPTPATH"/picom/picom.conf &> /dev/null &
+  picom --config "$SCRIPTPATH"/picom/picom.conf --backend glx \
+    --log-level warn --log-file "$HOME"/.cache/picom-leftwm.log &
 elif [ -x "$(command -v compton)" ]; then
   compton &> /dev/null &
 fi
 
-# Set the theme.toml config
-leftwm-command "LoadTheme $SCRIPTPATH/theme.toml"
+# Set the theme config
+leftwm-command "LoadTheme $SCRIPTPATH/theme.ron"
 
 # Set background
 if [ -x "$(command -v feh)" ]; then
-  feh --no-fehbg --bg-fill "$SCRIPTPATH"/Background.png
+  feh --no-fehbg --bg-fill "$SCRIPTPATH"/Background.jpg
 fi
 
 #Applications to 2run at startup
 dunst -conf "$SCRIPTPATH"/dunst/dunstrc &
 blueman-applet &
 
+if [ -x /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 ]; then
+  /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 &
+fi
+
 
 
 #open eww 'bar' windows
 #this is a bit of an uggly hack, a more elegant way will hopefully be possible with a future `eww` version
 
-ln -s  ~/.config/eww/eww-bar/* ~/.config/eww
+ln -sfn "$EWW_CONFIG"/* "$HOME"/.config/eww/
 
 
 sleep 1
@@ -47,8 +67,6 @@ index=0
 sizes=( $(leftwm-state -q -n -t $SCRIPTPATH/sizes.liquid | sed -r '/^\s*$/d' ) )
 for size in "${sizes[@]}"
 do
-    eww open bar$index
-    eww -c $HOME/.config/eww/eww-bar
+    eww -c "$EWW_CONFIG" open bar$index
   let index=index+1
 done
-
