@@ -21,6 +21,10 @@ if [ -f "/tmp/leftwm-theme-down" ]; then
 fi
 ln -s "$SCRIPTPATH"/down /tmp/leftwm-theme-down
 
+# Permanently apply the repository-owned GTK 3/4 glass palette. Existing local
+# files are backed up once under ~/.local/state/tanhe-leftwm-theme/gtk-backup.
+"$SCRIPTPATH"/scripts/apply-gtk-theme
+
 # start eww daemon
 mkdir -p "$HOME"/.config/eww
 ln -sfn "$EWW_CONFIG_SOURCE" "$EWW_CONFIG"
@@ -29,6 +33,9 @@ ln -sfn "$EWW_CONFIG_SOURCE" "$EWW_CONFIG"
 
 # Boot picom or compton if it exists
 if [ -x "$(command -v picom)" ]; then
+  pkill -x -u "$(id -u)" picom 2>/dev/null || true
+  pkill -x -u "$(id -u)" compton 2>/dev/null || true
+  sleep 0.2
   picom --config "$SCRIPTPATH"/picom/picom.conf --backend glx \
     --log-level warn --log-file "$HOME"/.cache/picom-leftwm.log &
 elif [ -x "$(command -v compton)" ]; then
@@ -44,12 +51,24 @@ if [ -x "$(command -v feh)" ]; then
 fi
 
 #Applications to 2run at startup
-dunst -conf "$SCRIPTPATH"/dunst/dunstrc &
-blueman-applet &
-
-if [ -x /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 ]; then
-  /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 &
+if command -v dunst >/dev/null 2>&1; then
+  dunst -conf "$SCRIPTPATH"/dunst/dunstrc &
 fi
+
+if command -v blueman-applet >/dev/null 2>&1; then
+  blueman-applet &
+fi
+
+for polkit_agent in \
+  /usr/lib/polkit-kde-authentication-agent-1 \
+  /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
+  /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 \
+  /usr/libexec/polkit-gnome-authentication-agent-1; do
+  if [ -x "$polkit_agent" ]; then
+    "$polkit_agent" &
+    break
+  fi
+done
 
 
 

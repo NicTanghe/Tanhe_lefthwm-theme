@@ -76,20 +76,20 @@ colors:
 font:
   # Normal (roman) font face
   normal:   
-    family: CaskaydiaCove Nerd Font Mono
+    family: MesloLGS Nerd Font Mono
     style: Regular
 
   # Bold font face
   bold:
-    family: CaskaydiaCove Nerd Font Mono
+    family: MesloLGS Nerd Font Mono
     style: Bold
 
   # Italic font face
   italic:
-    family: CaskaydiaCove Nerd Font Mono
+    family: MesloLGS Nerd Font Mono
     style: Italic
 
   # Bold italic font face
   bold_italic:
-    family: CaskaydiaCove Nerd Font Mono
+    family: MesloLGS Nerd Font Mono
     style: Bold Italic

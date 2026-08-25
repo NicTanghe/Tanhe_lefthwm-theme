@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -u
+
+for manager in cosmic-files nautilus dolphin thunar pcmanfm nemo; do
+  if command -v "$manager" >/dev/null 2>&1; then
+    exec "$manager" "$@"
+  fi
+done
+
+if command -v xdg-open >/dev/null 2>&1; then
+  exec xdg-open "${1:-$HOME}"
+fi
+
+printf 'No supported graphical file manager is installed.\n' >&2
+exit 127

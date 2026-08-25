@@ -32,11 +32,7 @@ case "${1:-toggle}" in
     ;;
   lock)
     close_menu
-    if command -v betterlockscreen >/dev/null 2>&1; then
-      betterlockscreen -l
-    else
-      loginctl lock-session
-    fi
+    "$HOME/.config/leftwm/scripts/lock-session"
     ;;
   suspend)
     close_menu

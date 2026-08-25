@@ -27,7 +27,7 @@
     (network-indicator)
     (button :class "control-menu-button"
             :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu toggle"
-      (image :path "/home/tanghe/.config/eww/eww-bar/assets/ubuntu.svg"
+      (image :path "${EWW_CONFIG_DIR}/assets/cachyos.svg"
              :image-width 18
              :image-height 18))
     (time)))

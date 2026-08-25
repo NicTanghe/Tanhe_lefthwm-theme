@@ -23,7 +23,7 @@ case $chosen in
 		  systemctl reboot
         ;;
     $lock)
-			betterlockscreen -l
+			"$HOME/.config/leftwm/scripts/lock-session"
         ;;
     $suspend)
 		  systemctl suspend

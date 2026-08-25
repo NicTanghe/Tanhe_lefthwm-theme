@@ -3,7 +3,7 @@
 SCRIPTPATH="$( cd "$(dirname "$0")" || return ; pwd -P )"
 
 #set background
-if [ -x "$(command -v feh)" ]; then
+if [ -f "$SCRIPTPATH/down.jpg" ] && [ -x "$(command -v feh)" ]; then
   feh --no-fehbg --bg-fill "$SCRIPTPATH"/down.jpg
 fi
 
