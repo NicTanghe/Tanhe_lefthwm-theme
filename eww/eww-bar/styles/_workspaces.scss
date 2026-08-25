@@ -1,0 +1,35 @@
+.workspaces {
+  margin-left: 0;
+}
+
+.workspaces button {
+  font-size: 24px;
+  padding: 4px 6px;
+}
+
+.workspaces button:hover {
+  color: $dracula-purple;
+}
+
+.ws-button-mine {
+  color: $dracula-orange;
+  background-color: rgba(250, 255, 255, 0.02);
+}
+
+.ws-button-visible {
+  color: $dracula-orange;
+  background-color: rgba(40, 42, 54, 0);
+}
+
+.ws-button-urgent {
+  color: $dracula-yellow;
+  background-color: #d35d6e;
+}
+
+.ws-button-busy {
+  color: $dracula-comment;
+}
+
+.ws-button {
+  color: #5b667e;
+}

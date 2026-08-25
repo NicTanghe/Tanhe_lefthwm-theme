@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+uid="$(id -u)"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$uid}"
+export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}"
+
+play_feedback() {
+  if command -v canberra-gtk-play >/dev/null 2>&1; then
+    canberra-gtk-play -i audio-volume-change -d "volume change" -c never >/dev/null 2>&1 &
+  elif command -v pw-play >/dev/null 2>&1; then
+    for sound in \
+      /usr/share/sounds/Yaru/stereo/audio-volume-change.oga \
+      /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga \
+      /usr/share/sounds/gnome/default/alerts/click.ogg; do
+      if [[ -r "$sound" ]]; then
+        pw-play "$sound" >/dev/null 2>&1 &
+        break
+      fi
+    done
+  fi
+}
+
+step="${VOLUME_STEP:-5%}"
+
+case "${1:-}" in
+  up|increase|inc)
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ "${step}+"
+    play_feedback
+    ;;
+  down|decrease|dec)
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ "${step}-"
+    play_feedback
+    ;;
+  *)
+    echo "Usage: $0 {up|down}" >&2
+    exit 2
+    ;;
+esac

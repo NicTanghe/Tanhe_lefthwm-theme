@@ -1,0 +1,140 @@
+/*******************************************************************************
+ * Calculator layout for rofi script mode
+ *******************************************************************************/
+
+configuration {
+    modi: "calc";
+    display-calc: "Calculator";
+    show-icons: true;
+    icon-theme: "Yaru";
+    hover-select: true;
+
+    kb-custom-1: "Alt+c";
+
+    inputchange {
+        action: "kb-accept-custom";
+    }
+}
+
+* {
+    font: "CaskaydiaCove Nerd Font Propo SemiBold 10";
+
+    bg0:  #24242480;
+    bg1:  #2d2536;
+    bg2:  #30273acc;
+    bg3:  #9b6a90cc;
+    bg4:  #6272a4e6;
+
+    fg0:  #eadff0;
+    fg1:  #b7a6bf;
+    fg2:  #ffb86c;
+
+    background-color: transparent;
+    text-color:       @fg0;
+    padding:          0px;
+    margin:           0px;
+}
+
+window {
+    fullscreen: true;
+    padding: 1em;
+    background-color: @bg0;
+}
+
+mainbox {
+    children: [inputbar, listview];
+    padding: 8px;
+}
+
+inputbar {
+    background-color: @bg2;
+
+    margin: 0px calc(50% - 320px);
+    padding: 6px 8px;
+    spacing: 6px;
+
+    border: 1px;
+    border-radius: 2px;
+    border-color: @bg3;
+
+    children: [entry];
+}
+
+entry {
+    text-color: @fg2;
+    placeholder: "Search or calculate";
+    placeholder-color: @fg1;
+    cursor-color: @fg2;
+    cursor-width: 2px;
+    hide-cursor-on-empty: true;
+}
+
+message {
+    orientation: horizontal;
+    children: [textbox, button-copy];
+
+    background-color: @bg1;
+    margin: 6px calc(50% - 320px) 0px;
+    padding: 4px 8px;
+    spacing: 8px;
+
+    border: 1px;
+    border-radius: 2px;
+    border-color: @bg3;
+}
+
+textbox {
+    expand: true;
+    text-color: @fg0;
+}
+
+button-copy {
+    content: "Copy";
+    action: "kb-custom-1";
+
+    expand: false;
+    padding: 2px 10px;
+    border: 1px;
+    border-radius: 2px;
+    border-color: @bg3;
+    background-color: @bg4;
+    text-color: @fg2;
+}
+
+listview {
+    margin: 48px 19.0983% 48px;
+    width: 61.8034%;
+    expand: true;
+    spacing: 48px;
+    flow: horizontal;
+    columns: 8;
+    fixed-columns: false;
+    fixed-height: false;
+}
+
+element, element-text, element-icon {
+    cursor: pointer;
+}
+
+element {
+    padding: 8px;
+    spacing: 4px;
+
+    orientation: vertical;
+    children: [element-icon, element-text];
+    border-radius: 16px;
+}
+
+element selected {
+    background-color: @bg4;
+    text-color: @fg2;
+}
+
+element-icon {
+    size: 4em;
+    horizontal-align: 0.5;
+}
+
+element-text {
+    horizontal-align: 0.5;
+}

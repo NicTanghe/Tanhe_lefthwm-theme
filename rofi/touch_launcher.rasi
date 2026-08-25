@@ -12,16 +12,17 @@ configuration {
 }
 
 * {
-    font: "Montserrat 9";
+    font: "CaskaydiaCove Nerd Font Propo SemiBold 10";
 
     bg0:  #24242480;
-    bg1:  #363636;
-    bg2:  #f5f5f520;
-    bg3:  #f5f5f540;
-    bg4:  #0860f2E6;
+    bg1:  #2d2536;
+    bg2:  #30273acc;
+    bg3:  #9b6a90cc;
+    bg4:  #6272a4e6;
 
-    fg0:  #f5f5f5;
-    fg1:  #f5f5f580;
+    fg0:  #eadff0;
+    fg1:  #b7a6bf;
+    fg2:  #ffb86c;
 
     background-color: transparent;
     text-color:       @fg0;
@@ -58,10 +59,10 @@ prompt {
 }
 
 entry {
-  text-color:          #ffb86c;
+  text-color:          @fg2;
   placeholder:        "Search";
-  placeholder-color:  #8a8f98;
-  cursor-color:       #8a8f98;
+  placeholder-color:  @fg1;
+  cursor-color:       @fg2;
   cursor-width:       2px;
   hide-cursor-on-empty: true;
 }
@@ -87,6 +88,7 @@ element {
 
 element selected {
   background-color: @bg4;
+  text-color: @fg2;
 }
 
 element-icon {

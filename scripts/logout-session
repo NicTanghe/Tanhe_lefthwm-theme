@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -u
+
+if [ -x "$HOME/.config/leftwm/themes/current/down" ]; then
+  "$HOME/.config/leftwm/themes/current/down"
+fi
+
+# Avoid leaving the X11 session stuck in logind's "closing" state after GDM
+# tears down the X server.
+pkill -TERM -f 'dbus-daemon .*at-spi/bus_0' >/dev/null 2>&1 || true
+pkill -TERM -f '/usr/libexec/at-spi-bus-launcher' >/dev/null 2>&1 || true
+pkill -TERM -x at-spi2-registryd >/dev/null 2>&1 || true
+
+# Let the display manager see the window manager exit and return to the greeter.
+# This machine has a custom GDM session that runs /usr/local/bin/leftwmHomebrew.
+pkill -TERM -x leftwmHomebrew >/dev/null 2>&1 || true
+pkill -TERM -x leftwm >/dev/null 2>&1 || true

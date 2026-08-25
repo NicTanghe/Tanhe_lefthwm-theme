@@ -1,0 +1,107 @@
+.bar0,
+window.bar0,
+window.background.bar0 {
+  background-color: rgba(40, 42, 54, 0.75);
+  color: $dracula-comment;
+  border-radius: 0;
+}
+
+.bar0 * {
+  border-radius: 0;
+}
+
+.leftstuff {
+  margin-left: 18px;
+}
+
+.control-menu-button {
+  background-color: transparent;
+  border-radius: 999px;
+  min-height: 30px;
+  min-width: 30px;
+  padding: 0;
+  margin: 5px 12px 5px 0;
+}
+
+.control-menu-button:hover {
+  background-color: rgba(255, 184, 108, 0.16);
+}
+
+.control-menu-button image {
+  color: $dracula-orange;
+}
+
+.time {
+  margin-right: 12px;
+}
+
+window.control-menu-window,
+window.background.control-menu-window {
+  background-color: rgba(40, 42, 54, 0.72);
+  border-radius: 8px;
+}
+
+.control-menu {
+  background-color: rgba(40, 42, 54, 0.72);
+  border-radius: 8px;
+  color: $dracula-foreground;
+  padding: 10px;
+}
+
+.control-menu * {
+  border-radius: 6px;
+}
+
+.control-menu-title {
+  color: $dracula-orange;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.control-slider-label {
+  color: $dracula-comment;
+  font-size: 12px;
+}
+
+.control-slider-name {
+  color: $dracula-foreground;
+}
+
+.control-slider-value {
+  color: $dracula-orange;
+  margin-left: 8px;
+}
+
+.control-slider scale trough {
+  background-color: rgba(248, 248, 242, 0.14);
+  min-height: 6px;
+  min-width: 140px;
+}
+
+.control-slider scale trough highlight {
+  background-color: $dracula-orange;
+}
+
+.control-action {
+  background-color: rgba(68, 71, 90, 0.78);
+  color: $dracula-foreground;
+  border-radius: 999px;
+  font-family: "Inter Nerd Font", "CaskaydiaCove Nerd Font Propo", sans-serif;
+  font-size: 18px;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0;
+}
+
+.control-action:hover {
+  background-color: rgba(189, 147, 249, 0.22);
+  color: $dracula-purple;
+}
+
+.control-action.danger {
+  color: $dracula-red;
+}
+
+.control-action.danger:hover {
+  background-color: rgba(255, 85, 85, 0.18);
+}

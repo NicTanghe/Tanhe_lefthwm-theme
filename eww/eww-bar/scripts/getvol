@@ -1,2 +1,2 @@
 #!/bin/sh
-awk -F"[][]" '/Left:/ { print $2 }' <(amixer sget Master) | tr -d '%' | head -1
+wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{ printf "%.0f\n", $2 * 100 }'

@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+set -eu
+
+exec rofi \
+    -no-config \
+    -no-lazy-grab \
+    -modes "calc:$HOME/.config/rofi/scripts/calc" \
+    -show calc \
+    -display-calc "Calculator" \
+    -theme "$HOME/.config/leftwm/themes/current/rofi/calculator.rasi"

@@ -6,16 +6,13 @@ export XDG_SESSION_TYPE=x11
 export GDK_BACKEND=x11
 unset WAYLAND_DISPLAY
 export PATH="$HOME/.cargo/bin:$PATH"
-EWW_CONFIG="$SCRIPTPATH/eww/eww-bar"
-autorandr -c
+EWW_CONFIG_SOURCE="$SCRIPTPATH/eww/eww-bar"
+EWW_CONFIG="$HOME/.config/eww/eww-bar"
+EWW_BIN="$SCRIPTPATH/bin/eww-patched"
 
 # Keep both displays top-aligned. Flameshot's X11 overlay can be offset when
-# monitors use different Y origins, for example HDMI-0 at +0+180.
-if [ -x "$(command -v xrandr)" ]; then
-  xrandr \
-    --output HDMI-0 --mode 1920x1080 --scale 1x1 --pos 0x0 \
-    --output DP-0 --primary --mode 2560x1440 --scale 1x1 --pos 1920x0
-fi
+# monitors use different Y origins, for example DP-2 at +0+180.
+DISPLAY_LAYOUT_RELOAD_LEFTWM=1 "$HOME"/.config/leftwm/scripts/apply-display-layout
 
 # Down the last running theme
 if [ -f "/tmp/leftwm-theme-down" ]; then
@@ -26,8 +23,8 @@ ln -s "$SCRIPTPATH"/down /tmp/leftwm-theme-down
 
 # start eww daemon
 mkdir -p "$HOME"/.config/eww
-ln -sfn "$EWW_CONFIG" "$HOME"/.config/eww/eww-bar
-eww -c "$EWW_CONFIG" daemon &
+ln -sfn "$EWW_CONFIG_SOURCE" "$EWW_CONFIG"
+"$EWW_BIN" -c "$EWW_CONFIG" daemon &
 
 
 # Boot picom or compton if it exists
@@ -56,17 +53,9 @@ fi
 
 
 
-#open eww 'bar' windows
-#this is a bit of an uggly hack, a more elegant way will hopefully be possible with a future `eww` version
+#open eww 'bar' window
 
 ln -sfn "$EWW_CONFIG"/* "$HOME"/.config/eww/
 
-
 sleep 1
-index=0
-sizes=( $(leftwm-state -q -n -t $SCRIPTPATH/sizes.liquid | sed -r '/^\s*$/d' ) )
-for size in "${sizes[@]}"
-do
-    eww -c "$EWW_CONFIG" open bar$index
-  let index=index+1
-done
+"$EWW_BIN" -c "$EWW_CONFIG" open bar0

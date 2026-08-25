@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -u
+
+output="${XPPEN_OUTPUT:-DP-2}"
+attempts="${XPPEN_MAP_ATTEMPTS:-1}"
+retry_delay="${XPPEN_MAP_RETRY_SECONDS:-2}"
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+lock_dir="$runtime_dir/xppen-map-to-dp2.lock"
+
+if ! command -v xrandr >/dev/null 2>&1 || ! command -v xinput >/dev/null 2>&1; then
+  exit 0
+fi
+
+if [ -z "${DISPLAY:-}" ]; then
+  exit 0
+fi
+
+if ! mkdir "$lock_dir" 2>/dev/null; then
+  exit 0
+fi
+trap 'rmdir "$lock_dir" 2>/dev/null || true' EXIT
+
+disable_duplicate_devices() {
+  xinput list 2>/dev/null \
+    | sed -n \
+      -e '/\[slave[[:space:]]*pointer/{
+        /XP-Pen/s/.*id=\([0-9]\+\).*/\1/p
+        /Tablet Mouse2/s/.*id=\([0-9]\+\).*/\1/p
+      }' \
+    | while IFS= read -r device_id; do
+        [ -n "$device_id" ] && xinput disable "$device_id" >/dev/null 2>&1 || true
+      done
+}
+
+map_current_devices() {
+  xinput list 2>/dev/null \
+    | sed -n \
+      -e '/\[slave[[:space:]]*pointer/{
+        /XPPen Artist Pro 27 (Gen2) Pen/s/.*id=\([0-9]\+\).*/\1/p
+        /eGalax Inc\. eGalaxTouch D5310B/s/.*id=\([0-9]\+\).*/\1/p
+      }' \
+    | while IFS= read -r device_id; do
+        [ -n "$device_id" ] && xinput map-to-output "$device_id" "$output" >/dev/null 2>&1 || true
+      done
+}
+
+attempt=1
+
+while [ "$attempts" -eq 0 ] || [ "$attempt" -le "$attempts" ]; do
+  if xrandr --query 2>/dev/null | grep -q "^$output connected "; then
+    disable_duplicate_devices
+    map_current_devices
+  fi
+
+  if [ "$attempts" -eq 0 ] || [ "$attempt" -lt "$attempts" ]; then
+    sleep "$retry_delay"
+  fi
+
+  attempt=$((attempt + 1))
+done

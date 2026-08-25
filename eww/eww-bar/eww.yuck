@@ -1,21 +1,35 @@
 (defwidget bar []
   (centerbox :orientation "h"
-    (workspaces)
+    (leftstuff)
     (music)
     (sidestuff)))
+
+(defwidget leftstuff []
+  (box :class "leftstuff"
+       :orientation "h"
+       :space-evenly false
+       :halign "start"
+       :spacing 10
+    (workspaces)))
 
 (defwidget sidestuff []
   (box :class "sidestuff" :orientation "h" :space-evenly false :halign "end"
     (tray)
     (metric :label "🎧"
             :value volume
-            :onchange "amixer -D pulse sset Master {}%")
+            :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%")
     (metric :label "🐏"
             :value '${EWW_RAM.used_mem_perc}'
             :onchange "")
     (metric :label "💾"
             :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100, 0)}
             :onchange "")
+    (network-indicator)
+    (button :class "control-menu-button"
+            :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu toggle"
+      (image :path "/home/tanghe/.config/eww/eww-bar/assets/ubuntu.svg"
+             :image-width 18
+             :image-height 18))
     (time)))
 
 ; eww is natively able to parse the JSON output of `leftwm-state`
@@ -53,6 +67,170 @@
              :icon-size 16
              :spacing 8)))
 
+(defwidget network-indicator []
+  (button :class {network.state == "connected" ? "network-button connected" : "network-button"}
+          :tooltip {network.tooltip}
+          :onclick "$HOME/.config/eww/eww-bar/scripts/network toggle"
+    (box :class "network-button-content"
+         :orientation "h"
+         :space-evenly false
+         :halign "center"
+         :valign "center"
+      (wifi-bars :level {network.level}))))
+
+(defwidget wifi-bars [level]
+  (box :class "wifi-bars"
+       :orientation "h"
+       :space-evenly false
+       :valign "end"
+    (box :class {level > 0 ? "wifi-bar wifi-bar-1 active" : "wifi-bar wifi-bar-1"})
+    (box :class {level > 1 ? "wifi-bar wifi-bar-2 active" : "wifi-bar wifi-bar-2"})
+    (box :class {level > 2 ? "wifi-bar wifi-bar-3 active" : "wifi-bar wifi-bar-3"})
+    (box :class {level > 3 ? "wifi-bar wifi-bar-4 active" : "wifi-bar wifi-bar-4"})))
+
+(defwidget network-menu []
+  (box :class "network-menu"
+       :orientation "v"
+       :space-evenly false
+       :spacing 10
+    (box :class "network-menu-header"
+         :orientation "h"
+         :space-evenly false
+      (box :class "network-menu-title" "Network")
+      (button :class "network-menu-action"
+              :onclick "$HOME/.config/eww/eww-bar/scripts/network refresh"
+        "Refresh"))
+    (box :class "network-current"
+         :orientation "h"
+         :space-evenly false
+         :spacing 10
+      (wifi-bars :level {network.level})
+      (box :class "network-current-copy"
+           :orientation "v"
+           :space-evenly false
+        (label :class "network-current-name"
+               :text {network.state == "connected" ? network.ssid : network.label}
+               :limit-width 24
+               :xalign 0)
+        (label :class "network-current-detail"
+               :text {network.detail}
+               :limit-width 32
+               :xalign 0)))
+    (box :class "network-actions"
+         :orientation "h"
+         :space-evenly false
+         :spacing 8
+      (button :class "network-action"
+              :onclick "$HOME/.config/eww/eww-bar/scripts/network select"
+        "Connect")
+      (button :class "network-action"
+              :onclick "$HOME/.config/eww/eww-bar/scripts/network settings"
+        "Settings"))
+    (label :class "network-section-title"
+           :text "Available networks"
+           :xalign 0)
+    (box :class "network-list"
+         :orientation "v"
+         :space-evenly false
+         :spacing 6
+      (for net in '${network.networks}'
+        (network-row :ssid "${net.ssid}"
+                     :signal {net.signal}
+                     :level {net.level}
+                     :security "${net.security}"
+                     :active {net.active})))
+    (label :class "network-message"
+           :text {network.message}
+           :limit-width 32
+           :xalign 0)))
+
+(defwidget network-row [ssid signal level security active]
+  (box :class {active ? "network-row active" : "network-row"}
+       :orientation "h"
+       :space-evenly false
+       :spacing 10
+    (wifi-bars :level {level})
+    (label :class "network-row-name"
+           :text ssid
+           :limit-width 21
+           :xalign 0)
+    (label :class "network-row-signal"
+           :text "${signal}%")
+    (label :class "network-row-security"
+           :text {security != "" ? "Lock" : "Open"})))
+
+(defwidget control-menu []
+  (box :class "control-menu"
+       :orientation "v"
+       :space-evenly false
+       :spacing 12
+    (control-slider :label "Volume"
+                    :icon "🎧"
+                    :value volume
+                    :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%")
+    (control-slider :label "Mic"
+                    :icon "🎙"
+                    :value mic_volume
+                    :onchange "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ {}%")
+    (spacing-slider)
+    (box :class "control-row"
+         :orientation "h"
+         :space-evenly false
+         :spacing 8
+      (button :class "control-action" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu mute" "󰝟")
+      (button :class "control-action" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu mic-mute" "󰍭")
+      (button :class "control-action" :onclick "playerctl play-pause" "󰐊"))
+    (box :class "control-row"
+         :orientation "h"
+         :space-evenly false
+         :spacing 8
+      (button :class "control-action" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu lock" "󰌾")
+      (button :class "control-action" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu suspend" "󰒲"))
+    (box :class "power-row"
+         :orientation "h"
+         :space-evenly false
+         :spacing 8
+      (button :class "control-action danger" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu logout" "󰍃")
+      (button :class "control-action danger" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu reboot" "󰜉")
+      (button :class "control-action danger" :onclick "$HOME/.config/eww/eww-bar/scripts/control-menu shutdown" "󰐥"))))
+
+(defwidget control-slider [label icon value onchange]
+  (box :class "control-slider"
+       :orientation "v"
+       :space-evenly false
+       :spacing 6
+    (box :class "control-slider-label"
+         :orientation "h"
+         :space-evenly false
+         :spacing 8
+      (box :class "control-slider-icon" icon)
+      (box :class "control-slider-name" label)
+      (box :class "control-slider-value" "${value}%"))
+    (scale :min 0
+           :max 101
+           :active true
+           :value value
+           :onchange onchange)))
+
+(defwidget spacing-slider []
+  (box :class "control-slider"
+       :orientation "v"
+       :space-evenly false
+       :spacing 6
+    (box :class "control-slider-label"
+         :orientation "h"
+         :space-evenly false
+         :spacing 8
+      (box :class "control-slider-icon" "▦")
+      (box :class "control-slider-name" "Spacing")
+      (box :class "control-slider-value" "${margin_multiplier}x"))
+    (scale :min 0
+           :max 3
+           :active true
+           :value margin_multiplier
+           :round-digits 0
+           :onchange "$HOME/.config/eww/eww-bar/scripts/control-menu spacing {}")))
+
 
 (defwidget metric [label value onchange]
   (box :orientation "h"
@@ -73,7 +251,16 @@
   "playerctl --follow metadata --format '{{ artist }} - {{ title }}  - {{ album }}' || true")
 
 (defpoll volume :interval "1s" :initial "50"
-  "scripts/getvol")
+  "$HOME/.config/eww/eww-bar/scripts/getvol")
+
+(defpoll mic_volume :interval "1s" :initial "50"
+  "$HOME/.config/eww/eww-bar/scripts/getmicvol")
+
+(defpoll network :interval "20s"
+         :initial '{"state":"unknown","ssid":"","label":"Wi-Fi","detail":"Checking network status","tooltip":"Wi-Fi","signal":0,"level":0,"message":"","networks":[]}'
+  "$HOME/.config/eww/eww-bar/scripts/network info")
+
+(defvar margin_multiplier 1)
 
 (defpoll time :interval "10s"
   "date '+%H:%M %b %d, %Y'")
@@ -93,3 +280,33 @@
                       :anchor "top center")
   :reserve (struts :side "top" :distance "42px")
   (bar))
+
+(defwindow control_menu
+  :monitor 0
+  :class "control-menu-window"
+  :windowtype "utility"
+  :wm-ignore true
+  :resizable false
+  :stacking "fg"
+  :focusable true
+  :geometry (geometry :x "-48px"
+                      :y "48px"
+                      :width "172px"
+                      :height "292px"
+                      :anchor "top right")
+  (control-menu))
+
+(defwindow network_menu
+  :monitor 0
+  :class "network-menu-window"
+  :windowtype "utility"
+  :wm-ignore true
+  :resizable false
+  :stacking "fg"
+  :focusable true
+  :geometry (geometry :x "-48px"
+                      :y "48px"
+                      :width "300px"
+                      :height "386px"
+                      :anchor "top right")
+  (network-menu))

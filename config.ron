@@ -12,8 +12,8 @@
     modkey: "Mod4",
     mousekey: "Mod4",
     workspaces: [
-        ( output: "HDMI-0", x: 0, y: 0, height: 1080, width: 1920 ),
-        ( output: "DP-0", x: 1920, y: 0, height: 1440, width: 2560 ),
+        ( output: "DP-0", x: 0, y: 0, height: 1440, width: 2560 ),
+        ( output: "DP-2", x: 2560, y: 0, height: 2160, width: 3840 ),
     ],
     tags: [
         "1",
@@ -49,6 +49,8 @@
         (name: "Alacritty", value: "alacritty", x: 860, y: 390, height: 300, width: 200),
     ],
     window_rules: [
+        ( window_class: "Blender", spawn_floating:  true),
+        ( window_class: "zenity", spawn_floating:  true),
         ( window_class: "UnrealEditor", spawn_floating:  true),
         ( window_class: "Steam", spawn_floating:  true),
         ( window_class: "Houdini FX", spawn_floating:  true),
@@ -64,20 +66,22 @@
 
         //costum
         //soundkeys
-        (command: Execute, value: "amixer -q set Master 1%+", modifier: [], key: "XF86XK_AudioRaiseVolume"),
-        (command: Execute, value: "amixer -q set Master 1%-", modifier: [], key: "XF86XK_AudioLowerVolume"),
-        (command: Execute, value: "playerctl play-pause", modifier: [], key: "XF86XK_AudioPlay"),
-        (command: Execute, value: "playerctl next", modifier: [], key: "XF86XK_AudioNext"),
-        (command: Execute, value: "playerctl previous", modifier: [], key: "XF86XK_AudioPrev"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/volume-step up", modifier: [], key: "XF86XK_AudioRaiseVolume"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/volume-step down", modifier: [], key: "XF86XK_AudioLowerVolume"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/media-playerctl play-pause", modifier: [], key: "XF86XK_AudioPlay"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/media-playerctl play-pause", modifier: [], key: "XF86XK_AudioPause"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/media-playerctl stop", modifier: [], key: "XF86XK_AudioStop"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/media-playerctl next", modifier: [], key: "XF86XK_AudioNext"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/media-playerctl previous", modifier: [], key: "XF86XK_AudioPrev"),
 
         (command: Execute, value: "$HOME/.config/leftwm/scripts/flameshot-snipping-tool", modifier: ["modkey", "Shift"], key: "s"),
 
-        (command: Execute, value: "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GDK_BACKEND=x11 eww -c $HOME/.config/eww/eww-bar open --toggle bar0", modifier: ["modkey"], key: "b"),
+        (command: Execute, value: "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GDK_BACKEND=x11 $HOME/.config/leftwm/themes/current/bin/eww-patched -c $HOME/.config/eww/eww-bar open --toggle bar0", modifier: ["modkey"], key: "b"),
 
         (command: Execute, value: "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GDK_BACKEND=x11 MOZ_GTK_TITLEBAR_DECORATION=client firefox", modifier: ["modkey"], key: "i"),
         (command: Execute, value: "nautilus -w", modifier: ["modkey"], key: "e"),
 
-        (command: Execute, value: "rofi -no-config -no-lazy-grab -show drun -theme $HOME/.config/leftwm/themes/current/rofi/launcher.rasi", modifier: ["modkey"], key: "r"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/rofi-launcher", modifier: ["modkey"], key: "r"),
 
         (command: ToggleFullScreen, value: "", modifier: ["modkey", "Shift"], key: "f"),
 
@@ -96,7 +100,7 @@
 //        (command: Execute, value: "alacritty", modifier: ["modkey", "Shift"], key: "Return"),
 //        (command: CloseWindow, value: "", modifier: ["modkey", "Shift"], key: "q"),
         (command: SoftReload, value: "", modifier: ["modkey", "Shift"], key: "r"),
-        (command: Execute, value: "loginctl kill-session $XDG_SESSION_ID", modifier: ["modkey", "Shift"], key: "x"),
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/logout-session", modifier: ["modkey", "Shift"], key: "x"),
         (command: Execute, value: "slock", modifier: ["modkey", "Control"], key: "l"),
         (command: MoveToLastWorkspace, value: "", modifier: ["modkey", "Shift"], key: "w"),
         (command: SwapTags, value: "", modifier: ["modkey"], key: "w"),

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+set -u
+
+output="${XPPEN_TOUCH_OUTPUT:-DP-2}"
+attempts="${XPPEN_TOUCH_MAP_ATTEMPTS:-10}"
+retry_delay="${XPPEN_TOUCH_MAP_RETRY_SECONDS:-1}"
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+lock_dir="$runtime_dir/xppen-touch-map-to-dp2.lock"
+
+if ! command -v xrandr >/dev/null 2>&1 || ! command -v xinput >/dev/null 2>&1; then
+  exit 0
+fi
+
+if [ -z "${DISPLAY:-}" ]; then
+  exit 0
+fi
+
+if ! mkdir "$lock_dir" 2>/dev/null; then
+  exit 0
+fi
+trap 'rmdir "$lock_dir" 2>/dev/null || true' EXIT
+
+attempt=1
+
+while [ "$attempts" -eq 0 ] || [ "$attempt" -le "$attempts" ]; do
+  if xrandr --query 2>/dev/null | grep -q "^$output connected "; then
+    device_ids="$(
+      xinput list 2>/dev/null \
+        | sed -n \
+          -e '/\[slave[[:space:]]*pointer/{
+            /eGalax Inc\. eGalaxTouch D5310B/s/.*id=\([0-9]\+\).*/\1/p
+          }'
+    )"
+
+    if [ -n "$device_ids" ]; then
+      for device_id in $device_ids; do
+        xinput map-to-output "$device_id" "$output" >/dev/null 2>&1 || true
+      done
+      exit 0
+    fi
+  fi
+
+  if [ "$attempts" -eq 0 ] || [ "$attempt" -lt "$attempts" ]; then
+    sleep "$retry_delay"
+  fi
+
+  attempt=$((attempt + 1))
+done

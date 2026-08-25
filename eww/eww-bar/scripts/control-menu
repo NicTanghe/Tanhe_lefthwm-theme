@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+EWW_CONFIG="$HOME/.config/eww/eww-bar"
+EWW_BIN="${EWW_BIN:-$HOME/.config/leftwm/themes/current/bin/eww-patched}"
+EWW_ENV=(env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GDK_BACKEND=x11)
+
+close_menu() {
+  "${EWW_ENV[@]}" "$EWW_BIN" -c "$EWW_CONFIG" close control_menu >/dev/null 2>&1 || true
+}
+
+close_network_menu() {
+  "${EWW_ENV[@]}" "$EWW_BIN" -c "$EWW_CONFIG" close network_menu >/dev/null 2>&1 || true
+}
+
+case "${1:-toggle}" in
+  toggle)
+    close_network_menu
+    "${EWW_ENV[@]}" "$EWW_BIN" -c "$EWW_CONFIG" open --toggle control_menu
+    ;;
+  mute)
+    wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+    ;;
+  mic-mute)
+    wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+    ;;
+  spacing)
+    value="${2:-1}"
+    "${EWW_ENV[@]}" "$EWW_BIN" -c "$EWW_CONFIG" update margin_multiplier="$value"
+    leftwm-command "SetMarginMultiplier $value"
+    ;;
+  lock)
+    close_menu
+    if command -v betterlockscreen >/dev/null 2>&1; then
+      betterlockscreen -l
+    else
+      loginctl lock-session
+    fi
+    ;;
+  suspend)
+    close_menu
+    systemctl suspend
+    ;;
+  logout)
+    close_menu
+    "$HOME/.config/leftwm/scripts/logout-session"
+    ;;
+  reboot)
+    close_menu
+    systemctl reboot
+    ;;
+  shutdown)
+    close_menu
+    systemctl poweroff
+    ;;
+esac

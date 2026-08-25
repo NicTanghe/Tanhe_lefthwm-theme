@@ -1,0 +1,351 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+EWW_CONFIG="$HOME/.config/eww/eww-bar"
+EWW_BIN="${EWW_BIN:-$HOME/.config/leftwm/themes/current/bin/eww-patched}"
+EWW_ENV=(env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 GDK_BACKEND=x11)
+
+notify() {
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send "Network" "$1" >/dev/null 2>&1 || true
+  fi
+}
+
+eww_cmd() {
+  "${EWW_ENV[@]}" "$EWW_BIN" -c "$EWW_CONFIG" "$@"
+}
+
+level_for_signal() {
+  local signal="${1:-0}"
+
+  if (( signal >= 80 )); then
+    echo 4
+  elif (( signal >= 60 )); then
+    echo 3
+  elif (( signal >= 35 )); then
+    echo 2
+  elif (( signal > 0 )); then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+nmcli_table() {
+  nmcli -t -e yes "$@" 2>/dev/null \
+    | awk '
+      BEGIN { OFS = "\t" }
+
+      {
+        field = ""
+        n = 0
+        escaped = 0
+
+        for (i = 1; i <= length($0); i++) {
+          char = substr($0, i, 1)
+
+          if (escaped) {
+            field = field char
+            escaped = 0
+          } else if (char == "\\") {
+            escaped = 1
+          } else if (char == ":") {
+            fields[++n] = field
+            field = ""
+          } else {
+            field = field char
+          }
+        }
+
+        if (escaped) {
+          field = field "\\"
+        }
+
+        fields[++n] = field
+
+        for (i = 1; i <= n; i++) {
+          printf "%s%s", fields[i], (i < n ? OFS : ORS)
+        }
+
+        delete fields
+      }
+    ' || true
+}
+
+wifi_list() {
+  local rows
+
+  rows="$(nmcli_table -f ACTIVE,SSID,SIGNAL,SECURITY,BSSID device wifi list --rescan no)"
+  if [[ -z "$rows" ]]; then
+    rows="$(nmcli_table -f IN-USE,SSID,SIGNAL,SECURITY,BSSID device wifi list --rescan no)"
+  fi
+
+  printf '%s\n' "$rows"
+}
+
+networks_json() {
+  wifi_list \
+    | awk -F '\t' '
+        function is_active(value) {
+          return tolower(value) == "yes" || value == "*"
+        }
+
+        $2 != "" {
+          key = $2
+          if (!(key in seen)) {
+            seen[key] = 1
+            order[++count] = key
+            save = 1
+          } else {
+            save = is_active($1) && !is_active(active[key])
+          }
+
+          if (save) {
+            active[key] = $1
+            signal[key] = $3 + 0
+            security[key] = $4
+            bssid[key] = $5
+          }
+        }
+
+        END {
+          for (i = 1; i <= count && printed < 8; i++) {
+            key = order[i]
+            print active[key] "\t" key "\t" signal[key] "\t" security[key] "\t" bssid[key]
+            printed++
+          }
+        }' \
+    | jq -R -s '
+        def level($signal):
+          if $signal >= 80 then 4
+          elif $signal >= 60 then 3
+          elif $signal >= 35 then 2
+          elif $signal > 0 then 1
+          else 0 end;
+
+        split("\n")
+        | map(select(length > 0) | split("\t") | {
+            active: ((.[0] | ascii_downcase) == "yes" or .[0] == "*"),
+            ssid: .[1],
+            signal: (.[2] | tonumber? // 0),
+            level: level((.[2] | tonumber? // 0)),
+            security: .[3],
+            bssid: .[4]
+          })'
+}
+
+info() {
+  local sep wifi_state device active_line ssid signal level label detail tooltip message networks state active security bssid
+  sep=$'\t'
+
+  if ! command -v nmcli >/dev/null 2>&1; then
+    jq -nc '{
+      state: "unavailable",
+      ssid: "",
+      label: "No nmcli",
+      detail: "NetworkManager CLI is not installed",
+      tooltip: "NetworkManager CLI is not installed",
+      signal: 0,
+      level: 0,
+      message: "",
+      networks: []
+    }'
+    return
+  fi
+
+  wifi_state="$(nmcli -t -f WIFI general 2>/dev/null | head -n 1 || true)"
+  device="$(
+    nmcli_table -f DEVICE,TYPE,STATE device status \
+      | awk -F '\t' '$2 == "wifi" {print $1; exit}' || true
+  )"
+  networks="$(networks_json)"
+  active_line="$(wifi_list | awk -F '\t' '$2 != "" && (tolower($1) == "yes" || $1 == "*") {print; exit}')"
+
+  ssid=""
+  signal=0
+  security=""
+  bssid=""
+  if [[ -n "$active_line" ]]; then
+    IFS=$'\t' read -r active ssid signal security bssid <<< "$active_line"
+  else
+    ssid="$(
+      nmcli_table -f NAME,TYPE connection show --active \
+        | awk -F '\t' '$2 == "802-11-wireless" || $2 == "wifi" {print $1; exit}' || true
+    )"
+  fi
+
+  signal="${signal:-0}"
+  level="$(level_for_signal "$signal")"
+  message=""
+
+  if [[ "$wifi_state" == "disabled" ]]; then
+    label="Wi-Fi off"
+    detail="Wireless radio is disabled"
+    tooltip="$detail"
+    state="disabled"
+    level=0
+    signal=0
+    message="Use Settings to turn Wi-Fi back on."
+  elif [[ -z "$device" ]]; then
+    label="No Wi-Fi"
+    detail="No wireless device was found"
+    tooltip="$detail"
+    state="unavailable"
+    level=0
+    signal=0
+    message="No Wi-Fi adapter is visible to NetworkManager."
+  elif [[ -n "$ssid" ]]; then
+    label="$ssid"
+    detail="${signal}% signal on ${device}"
+    tooltip="${ssid}: ${signal}% signal"
+    state="connected"
+  else
+    label="Disconnected"
+    detail="Wi-Fi is on, not connected"
+    tooltip="$detail"
+    state="disconnected"
+    message="Choose Connect or open Settings."
+  fi
+
+  jq -nc \
+    --arg state "$state" \
+    --arg ssid "$ssid" \
+    --arg label "$label" \
+    --arg detail "$detail" \
+    --arg tooltip "$tooltip" \
+    --arg signal "$signal" \
+    --arg level "$level" \
+    --arg message "$message" \
+    --argjson networks "${networks:-[]}" \
+    '{
+      state: $state,
+      ssid: $ssid,
+      label: $label,
+      detail: $detail,
+      tooltip: $tooltip,
+      signal: ($signal | tonumber? // 0),
+      level: ($level | tonumber? // 0),
+      message: $message,
+      networks: $networks
+    }'
+}
+
+refresh() {
+  nmcli device wifi rescan >/dev/null 2>&1 || true
+  eww_cmd update network="$(info)" >/dev/null 2>&1 || true
+}
+
+settings() {
+  eww_cmd close network_menu >/dev/null 2>&1 || true
+
+  if command -v nm-connection-editor >/dev/null 2>&1; then
+    setsid -f nm-connection-editor >/dev/null 2>&1 || true
+  elif command -v nmtui >/dev/null 2>&1; then
+    setsid -f alacritty -e nmtui >/dev/null 2>&1 || true
+  else
+    notify "No NetworkManager editor was found."
+  fi
+}
+
+select_network() {
+  local sep choice ssid security password
+  sep=$'\t'
+
+  if ! command -v rofi >/dev/null 2>&1; then
+    settings
+    return
+  fi
+
+  nmcli device wifi rescan >/dev/null 2>&1 || true
+
+  choice="$(
+    wifi_list \
+      | awk -F '\t' '
+          function is_active(value) {
+            return tolower(value) == "yes" || value == "*"
+          }
+
+          $2 != "" {
+            key = $2
+            if (!(key in seen)) {
+              seen[key] = 1
+              order[++count] = key
+              save = 1
+            } else {
+              save = is_active($1) && !is_active(active[key])
+            }
+
+            if (save) {
+              active[key] = $1
+              signal[key] = $3
+              security[key] = $4
+            }
+          }
+
+          END {
+            for (i = 1; i <= count; i++) {
+              key = order[i]
+              status = is_active(active[key]) ? "connected" : ""
+              secure = (security[key] == "") ? "open" : "secure"
+              printf "%s\t%s%%\t%s\t%s\n", key, signal[key], secure, status
+            }
+          }' \
+      | rofi -dmenu -i -p "Wi-Fi"
+  )"
+
+  [[ -n "$choice" ]] || return
+  ssid="${choice%%$sep*}"
+  [[ -n "$ssid" ]] || return
+
+  security="$(
+    wifi_list \
+      | awk -F '\t' -v ssid="$ssid" '$2 == ssid {print $4; exit}'
+  )"
+
+  eww_cmd close network_menu >/dev/null 2>&1 || true
+
+  if nmcli -w 15 device wifi connect "$ssid" >/tmp/eww-network-connect.log 2>&1; then
+    notify "Connected to $ssid."
+    refresh
+    return
+  fi
+
+  if [[ -n "$security" ]]; then
+    password="$(rofi -dmenu -password -p "Password for $ssid")"
+    [[ -n "$password" ]] || return
+
+    if nmcli -w 30 device wifi connect "$ssid" password "$password" >/tmp/eww-network-connect.log 2>&1; then
+      notify "Connected to $ssid."
+    else
+      notify "Could not connect to $ssid."
+    fi
+  else
+    notify "Could not connect to $ssid."
+  fi
+
+  refresh
+}
+
+case "${1:-info}" in
+  info)
+    info
+    ;;
+  toggle)
+    eww_cmd close control_menu >/dev/null 2>&1 || true
+    eww_cmd open --toggle network_menu
+    ;;
+  refresh)
+    refresh
+    ;;
+  settings)
+    settings
+    ;;
+  select)
+    select_network
+    ;;
+  *)
+    echo "Usage: $0 {info|toggle|refresh|settings|select}" >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,98 @@
+.tray {
+    margin-right: 18px;
+}
+
+.tray image {
+    margin: 0 4px;
+}
+
+window.popup,
+window.background.popup {
+    font-family: "Inter Nerd Font", "CaskaydiaCove Nerd Font Propo", sans-serif;
+    font-size: 11px;
+    background-color: transparent;
+    background-image: none;
+    color: $dracula-foreground;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+}
+
+menu,
+.menu,
+.context-menu,
+.eww-systray-menu,
+window.popup menu,
+window.background.popup menu {
+    font-family: "Inter Nerd Font", "CaskaydiaCove Nerd Font Propo", sans-serif;
+    font-size: 11px;
+    background-color: rgba(40, 42, 54, 0.08);
+    background-image: none;
+    color: $dracula-foreground;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 6px;
+}
+
+menu *,
+.menu *,
+.context-menu *,
+.eww-systray-menu * {
+    font-family: inherit;
+    font-size: inherit;
+    background-image: none;
+}
+
+menuitem,
+.menuitem {
+    color: $dracula-foreground;
+    border-radius: 6px;
+    background-clip: padding-box;
+    margin: 3px 7px;
+    padding: 5px 9px;
+}
+
+menuitem:first-child,
+.menuitem:first-child {
+    margin-top: 6px;
+}
+
+menuitem:last-child,
+.menuitem:last-child {
+    margin-bottom: 6px;
+}
+
+menuitem label,
+menuitem image,
+.menuitem label,
+.menuitem image {
+    color: inherit;
+}
+
+menuitem:disabled,
+.menuitem:disabled {
+    color: rgba(248, 248, 242, 0.42);
+}
+
+menuitem:hover,
+menuitem:active,
+.menuitem:hover,
+.menuitem:active {
+    background-color: rgba(255, 184, 108, 0.2);
+    border-radius: 6px;
+    color: $dracula-orange;
+}
+
+menuitem:hover *,
+menuitem:active *,
+.menuitem:hover *,
+.menuitem:active * {
+    border-radius: 6px;
+}
+
+separator,
+.separator {
+    background-color: rgba(189, 147, 249, 0.28);
+    margin: 6px 4px;
+    min-height: 1px;
+}

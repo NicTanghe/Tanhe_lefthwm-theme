@@ -1,0 +1,148 @@
+.network-button {
+  background-color: transparent;
+  border-radius: 999px;
+  min-height: 30px;
+  min-width: 30px;
+  padding: 0;
+  margin: 5px 8px 5px 0;
+}
+
+.network-button:hover {
+  background-color: rgba(255, 184, 108, 0.16);
+}
+
+.network-button-content {
+  min-height: 18px;
+  min-width: 24px;
+}
+
+.wifi-bars {
+  min-height: 17px;
+  min-width: 24px;
+}
+
+.wifi-bar {
+  background-color: rgba(248, 248, 242, 0.2);
+  border-radius: 2px;
+  margin: 0 1px;
+  min-width: 4px;
+}
+
+.wifi-bar.active {
+  background-color: $dracula-orange;
+}
+
+.wifi-bar-1 {
+  margin-top: 12px;
+  min-height: 5px;
+}
+
+.wifi-bar-2 {
+  margin-top: 8px;
+  min-height: 9px;
+}
+
+.wifi-bar-3 {
+  margin-top: 4px;
+  min-height: 13px;
+}
+
+.wifi-bar-4 {
+  margin-top: 0;
+  min-height: 17px;
+}
+
+window.network-menu-window,
+window.background.network-menu-window {
+  background-color: rgba(40, 42, 54, 0.72);
+  border-radius: 8px;
+}
+
+.network-menu {
+  background-color: rgba(40, 42, 54, 0.72);
+  border-radius: 8px;
+  color: $dracula-foreground;
+  padding: 10px;
+}
+
+.network-menu * {
+  border-radius: 6px;
+}
+
+.network-menu-header {
+  color: $dracula-comment;
+}
+
+.network-menu-title {
+  color: $dracula-orange;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.network-menu-action {
+  background-color: rgba(68, 71, 90, 0.78);
+  color: $dracula-foreground;
+  margin-left: 108px;
+  padding: 5px 9px;
+}
+
+.network-menu-action:hover,
+.network-action:hover {
+  background-color: rgba(255, 184, 108, 0.18);
+  color: $dracula-orange;
+}
+
+.network-current {
+  background-color: rgba(68, 71, 90, 0.48);
+  padding: 10px;
+}
+
+.network-current-name {
+  color: $dracula-foreground;
+  font-weight: 700;
+}
+
+.network-current-detail,
+.network-message,
+.network-section-title {
+  color: $dracula-comment;
+  font-size: 12px;
+}
+
+.network-actions {
+  margin-top: 2px;
+}
+
+.network-action {
+  background-color: rgba(68, 71, 90, 0.78);
+  color: $dracula-foreground;
+  padding: 7px 12px;
+}
+
+.network-section-title {
+  margin-top: 2px;
+}
+
+.network-row {
+  background-color: rgba(68, 71, 90, 0.42);
+  color: $dracula-foreground;
+  padding: 7px 8px;
+}
+
+.network-row.active {
+  background-color: rgba(241, 250, 140, 0.12);
+}
+
+.network-row-name {
+  min-width: 126px;
+}
+
+.network-row-signal {
+  color: $dracula-orange;
+  min-width: 42px;
+}
+
+.network-row-security {
+  color: $dracula-comment;
+  min-width: 38px;
+}

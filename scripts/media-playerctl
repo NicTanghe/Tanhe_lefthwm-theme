@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+set -eu
+
+uid="$(id -u)"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$uid}"
+export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}"
+
+log="${XDG_RUNTIME_DIR:-/tmp}/leftwm-media-playerctl.log"
+
+# MPD/rmpc does not expose an MPRIS player, so playerctl cannot control it.
+# Prefer MPD while the interactive rmpc client is open, and keep playerctl as
+# the fallback for browsers and other MPRIS-compatible players.
+if pgrep -u "$uid" -x rmpc >/dev/null 2>&1; then
+    case "${1:-}" in
+        play-pause) rmpc_command="togglepause" ;;
+        stop)       rmpc_command="stop" ;;
+        next)       rmpc_command="next" ;;
+        previous)   rmpc_command="prev" ;;
+        *)          rmpc_command="" ;;
+    esac
+
+    if [ -n "$rmpc_command" ]; then
+        {
+            printf '%s rmpc %s\n' "$(date '+%F %T')" "$rmpc_command"
+            rmpc "$rmpc_command"
+        } >>"$log" 2>&1 && exit 0
+    fi
+fi
+
+{
+    printf '%s playerctl %s\n' "$(date '+%F %T')" "$*"
+    playerctl "$@"
+} >>"$log" 2>&1

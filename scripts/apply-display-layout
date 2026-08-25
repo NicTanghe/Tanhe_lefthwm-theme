@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v xrandr >/dev/null 2>&1; then
+  exit 0
+fi
+
+if [ -z "${DISPLAY:-}" ]; then
+  exit 0
+fi
+
+reload_leftwm_if_requested() {
+  if [ "${DISPLAY_LAYOUT_RELOAD_LEFTWM:-0}" = "1" ] \
+    && command -v leftwm-command >/dev/null 2>&1; then
+    (
+      sleep 1
+      leftwm-command SoftReload >/dev/null 2>&1 || true
+    ) &
+  fi
+}
+
+schedule_xppen_input_mapping() {
+  local mapper="$HOME/.config/leftwm/scripts/map-xppen-to-dp2"
+
+  if [ "${XPPEN_AUTO_MAP:-0}" != "1" ]; then
+    return
+  fi
+
+  if [ ! -x "$mapper" ]; then
+    return
+  fi
+
+  "$mapper" >/dev/null 2>&1 &
+}
+
+schedule_xppen_touch_mapping() {
+  local mapper="$HOME/.config/leftwm/scripts/map-xppen-touch-to-dp2"
+
+  if [ ! -x "$mapper" ]; then
+    return
+  fi
+
+  "$mapper" >/dev/null 2>&1 &
+}
+
+attempts="${DISPLAY_LAYOUT_WAIT_ATTEMPTS:-20}"
+retry_delay="${DISPLAY_LAYOUT_RETRY_SECONDS:-0.5}"
+current_layout=""
+
+for ((attempt = 1; attempt <= attempts; attempt++)); do
+  current_layout="$(xrandr --query 2>/dev/null || true)"
+
+  if [ -z "$current_layout" ]; then
+    sleep "$retry_delay"
+    continue
+  fi
+
+  if grep -q '^DP-0 connected primary 2560x1440+0+0 ' <<<"$current_layout" \
+    && grep -q '^DP-2 connected 3840x2160+2560+0 ' <<<"$current_layout"; then
+    schedule_xppen_touch_mapping
+    schedule_xppen_input_mapping
+    exit 0
+  fi
+
+  if grep -q '^DP-2 connected ' <<<"$current_layout" \
+    && grep -q '^DP-0 connected ' <<<"$current_layout"; then
+    xrandr \
+      --output HDMI-0 --off \
+      --output DP-0 --primary --mode 2560x1440 --rate 59.95 --scale 1x1 --pos 0x0 \
+      --output DP-2 --mode 3840x2160 --rate 60.00 --scale 1x1 --pos 2560x0 || true
+    schedule_xppen_touch_mapping
+    schedule_xppen_input_mapping
+    reload_leftwm_if_requested
+    exit 0
+  fi
+
+  if [ "$attempt" -lt "$attempts" ]; then
+    sleep "$retry_delay"
+  fi
+done
+
+if [ -z "$current_layout" ]; then
+  exit 0
+fi
+
+if grep -q '^HDMI-0 connected ' <<<"$current_layout" \
+  && grep -q '^DP-0 connected ' <<<"$current_layout"; then
+  xrandr \
+    --output DP-2 --off \
+    --output HDMI-0 --mode 1920x1080 --rate 60.00 --scale 1x1 --pos 0x0 \
+    --output DP-0 --primary --mode 2560x1440 --rate 59.95 --scale 1x1 --pos 1920x0 || true
+  reload_leftwm_if_requested
+  exit 0
+fi
+
+if grep -q '^DP-0 connected ' <<<"$current_layout"; then
+  xrandr \
+    --output HDMI-0 --off \
+    --output DP-2 --off \
+    --output DP-0 --primary --mode 2560x1440 --rate 59.95 --scale 1x1 --pos 0x0 || true
+  reload_leftwm_if_requested
+fi
