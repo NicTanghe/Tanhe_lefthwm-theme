@@ -9,9 +9,9 @@ fi
 
 leftwm-command UnloadTheme || true
 
-pkill compton || true
-pkill picom || true
-pkill polybar || true
+pkill -x -u "$(id -u)" compton 2>/dev/null || true
+pkill -x -u "$(id -u)" picom 2>/dev/null || true
+pkill -x -u "$(id -u)" polybar 2>/dev/null || true
 "$SCRIPTPATH"/bin/eww-patched -c "$HOME"/.config/eww/eww-bar kill || true
-pkill dunst || true
+pkill -x -u "$(id -u)" dunst 2>/dev/null || true
 #pkill xss-lock

@@ -9,46 +9,139 @@ export PATH="$HOME/.cargo/bin:$PATH"
 EWW_CONFIG_SOURCE="$SCRIPTPATH/eww/eww-bar"
 EWW_CONFIG="$HOME/.config/eww/eww-bar"
 EWW_BIN="$SCRIPTPATH/bin/eww-patched"
+PICOM_CONFIG="$SCRIPTPATH/picom/picom.conf"
+PICOM_AUTOSTART_OVERRIDE="$HOME/.config/autostart/picom.desktop"
 
-# Keep both displays top-aligned. Flameshot's X11 overlay can be offset when
-# monitors use different Y origins, for example DP-2 at +0+180.
-DISPLAY_LAYOUT_RELOAD_LEFTWM=1 "$HOME"/.config/leftwm/scripts/apply-display-layout
+theme_picom_pid() {
+  local pid
 
-# Down the last running theme
-if [ -f "/tmp/leftwm-theme-down" ]; then
-    /tmp/leftwm-theme-down
-    rm /tmp/leftwm-theme-down
-fi
-ln -s "$SCRIPTPATH"/down /tmp/leftwm-theme-down
+  while read -r pid; do
+    if [ -r "/proc/$pid/cmdline" ] \
+      && tr '\0' '\n' < "/proc/$pid/cmdline" | grep -Fxq -- "$PICOM_CONFIG"; then
+      printf '%s\n' "$pid"
+      return 0
+    fi
+  done < <(pgrep -x -u "$(id -u)" picom 2>/dev/null || true)
 
-# Permanently apply the repository-owned GTK 3/4 glass palette. Existing local
-# files are backed up once under ~/.local/state/tanhe-leftwm-theme/gtk-backup.
-"$SCRIPTPATH"/scripts/apply-gtk-theme
+  return 1
+}
 
-# start eww daemon
-mkdir -p "$HOME"/.config/eww
-ln -sfn "$EWW_CONFIG_SOURCE" "$EWW_CONFIG"
-"$EWW_BIN" -c "$EWW_CONFIG" daemon &
+start_or_reload_theme_picom() {
+  local pid
 
+  if ! command -v picom >/dev/null 2>&1; then
+    if command -v compton >/dev/null 2>&1; then
+      compton >/dev/null 2>&1 &
+    fi
+    return
+  fi
 
-# Boot picom or compton if it exists
-if [ -x "$(command -v picom)" ]; then
+  # A LeftWM SoftReload runs this script again. Reinitialize the compositor
+  # already using this theme config instead of replacing it with plain Picom.
+  if pid="$(theme_picom_pid)"; then
+    pkill -x -u "$(id -u)" compton 2>/dev/null || true
+    kill -USR1 "$pid" 2>/dev/null || true
+    return
+  fi
+
+  # Replace CachyOS's system-autostarted `picom` with this theme's configured
+  # instance on the first run only.
   pkill -x -u "$(id -u)" picom 2>/dev/null || true
   pkill -x -u "$(id -u)" compton 2>/dev/null || true
   sleep 0.2
-  picom --config "$SCRIPTPATH"/picom/picom.conf --backend glx \
-    --log-level warn --log-file "$HOME"/.cache/picom-leftwm.log &
-elif [ -x "$(command -v compton)" ]; then
-  compton &> /dev/null &
-fi
+  picom --config "$PICOM_CONFIG" --backend glx \
+    --log-level warn --log-file "$HOME/.cache/picom-leftwm.log" &
+}
 
-# Set the theme config
+set_background() {
+  if command -v feh >/dev/null 2>&1; then
+    feh --no-fehbg --bg-fill "$SCRIPTPATH/Background.jpg" >/dev/null 2>&1
+  fi
+}
+
+theme_eww_pid() {
+  local pid executable
+
+  while read -r pid; do
+    executable="$(readlink -f "/proc/$pid/exe" 2>/dev/null || true)"
+    if [ "$executable" = "$EWW_BIN" ]; then
+      printf '%s\n' "$pid"
+      return 0
+    fi
+  done < <(
+    pgrep -x -u "$(id -u)" eww-patched 2>/dev/null \
+      || pgrep -x -u "$(id -u)" eww 2>/dev/null \
+      || true
+  )
+
+  return 1
+}
+
+start_or_reload_eww_bar() {
+  local attempt
+
+  mkdir -p "$HOME/.config/eww"
+  ln -sfn "$EWW_CONFIG_SOURCE" "$EWW_CONFIG"
+  ln -sfn "$EWW_CONFIG"/* "$HOME/.config/eww/"
+
+  # Preserve the already-visible bar on SoftReload. Only replace the daemon if
+  # the socket belongs to a different Eww build or no daemon is responding.
+  if theme_eww_pid >/dev/null \
+    && "$EWW_BIN" -c "$EWW_CONFIG" ping >/dev/null 2>&1; then
+    "$EWW_BIN" -c "$EWW_CONFIG" reload >/dev/null 2>&1 || true
+  else
+    "$EWW_BIN" -c "$EWW_CONFIG" kill >/dev/null 2>&1 || true
+    sleep 0.2
+    "$EWW_BIN" -c "$EWW_CONFIG" daemon >/dev/null 2>&1
+  fi
+
+  for attempt in {1..20}; do
+    if "$EWW_BIN" -c "$EWW_CONFIG" ping >/dev/null 2>&1; then
+      break
+    fi
+    sleep 0.1
+  done
+
+  if ! "$EWW_BIN" -c "$EWW_CONFIG" active-windows 2>/dev/null \
+    | grep -Eq '(^bar0:|:[[:space:]]*bar0$)'; then
+    "$EWW_BIN" -c "$EWW_CONFIG" open bar0 >/dev/null 2>&1 || true
+  fi
+}
+
+# CachyOS ships /etc/xdg/autostart/picom.desktop, which starts an unconfigured
+# compositor before LeftWM's theme. Shadow it for this user; the theme owns
+# Picom from this point onward.
+mkdir -p "$(dirname "$PICOM_AUTOSTART_OVERRIDE")"
+install -m 0644 "$SCRIPTPATH/autostart/picom.desktop" "$PICOM_AUTOSTART_OVERRIDE"
+
+# Down a different active theme. On a SoftReload this symlink points back to
+# our own down script, so keep the existing bar and compositor alive.
+if [ -L "/tmp/leftwm-theme-down" ] || [ -f "/tmp/leftwm-theme-down" ]; then
+    previous_down="$(readlink -f /tmp/leftwm-theme-down 2>/dev/null || true)"
+    if [ "$previous_down" != "$SCRIPTPATH/down" ]; then
+        /tmp/leftwm-theme-down
+    fi
+fi
+ln -sfn "$SCRIPTPATH"/down /tmp/leftwm-theme-down
+
+# Apply borders and gaps before starting slower desktop services. A new LeftWM
+# worker otherwise shows its built-in red borders and larger default gaps until
+# the rest of this script has finished.
 leftwm-command "LoadTheme $SCRIPTPATH/theme.ron"
 
-# Set background
-if [ -x "$(command -v feh)" ]; then
-  feh --no-fehbg --bg-fill "$SCRIPTPATH"/Background.jpg
-fi
+# These jobs are independent. Start them together so a slow RandR probe or
+# gsettings call cannot hold the wallpaper and bar behind it.
+set_background &
+start_or_reload_theme_picom &
+start_or_reload_eww_bar &
+"$SCRIPTPATH"/scripts/apply-gtk-theme >/dev/null 2>&1 &
+
+# Keep both displays top-aligned. Reapply the wallpaper when this asynchronous
+# job finishes in case xrandr changed the combined root-window dimensions.
+(
+  "$HOME"/.config/leftwm/scripts/apply-display-layout
+  set_background
+) >/dev/null 2>&1 &
 
 #Applications to 2run at startup
 if command -v dunst >/dev/null 2>&1; then
@@ -69,12 +162,3 @@ for polkit_agent in \
     break
   fi
 done
-
-
-
-#open eww 'bar' window
-
-ln -sfn "$EWW_CONFIG"/* "$HOME"/.config/eww/
-
-sleep 1
-"$EWW_BIN" -c "$EWW_CONFIG" open bar0

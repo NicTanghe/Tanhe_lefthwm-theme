@@ -1,10 +1,18 @@
 #!/usr/bin/env sh
 set -eu
 
+theme_root="$HOME/.config/leftwm/themes/current"
+calculator="$theme_root/rofi/scripts/calc"
+
+if [ ! -x "$calculator" ]; then
+    printf 'Calculator mode is missing or not executable: %s\n' "$calculator" >&2
+    exit 127
+fi
+
 exec rofi \
     -no-config \
     -no-lazy-grab \
-    -modes "calc:$HOME/.config/rofi/scripts/calc" \
+    -modes "calc:$calculator" \
     -show calc \
     -display-calc "Calculator" \
-    -theme "$HOME/.config/leftwm/themes/current/rofi/calculator.rasi"
+    -theme "$theme_root/rofi/calculator.rasi"

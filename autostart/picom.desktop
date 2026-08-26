@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Picom
+Comment=Picom is managed by the active LeftWM theme
+Hidden=true
+X-GNOME-Autostart-enabled=false
+

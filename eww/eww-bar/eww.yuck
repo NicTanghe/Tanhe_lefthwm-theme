@@ -288,7 +288,6 @@
   :wm-ignore true
   :resizable false
   :stacking "fg"
-  :focusable true
   :geometry (geometry :x "-48px"
                       :y "48px"
                       :width "172px"
@@ -303,7 +302,6 @@
   :wm-ignore true
   :resizable false
   :stacking "fg"
-  :focusable true
   :geometry (geometry :x "-48px"
                       :y "48px"
                       :width "300px"
