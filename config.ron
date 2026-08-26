@@ -91,7 +91,11 @@
 
         (command: Execute, value: "alacritty --config-file $HOME/.config/leftwm/themes/current/alacritty/alacritty.toml", modifier: ["modkey"], key: "Return"),
         (command: MoveWindowTop, value: "", modifier: ["modkey", "Shift"], key: "Return"),
+
+        // Graceful WM close (keeps Picom's close animation).
         (command: CloseWindow, value: "", modifier: ["modkey"], key: "q"),
+        // Emergency X11 client kill for an unresponsive application.
+        (command: Execute, value: "$HOME/.config/leftwm/scripts/force-close-window", modifier: ["modkey", "Shift"], key: "q"),
 
 
 
@@ -99,7 +103,6 @@
         //standard
 //        (command: Execute, value: "dmenu_run", modifier: ["modkey"], key: "p"),
 //        (command: Execute, value: "alacritty", modifier: ["modkey", "Shift"], key: "Return"),
-//        (command: CloseWindow, value: "", modifier: ["modkey", "Shift"], key: "q"),
         (command: SoftReload, value: "", modifier: ["modkey", "Shift"], key: "r"),
         (command: Execute, value: "$HOME/.config/leftwm/scripts/logout-session", modifier: ["modkey", "Shift"], key: "x"),
         (command: Execute, value: "$HOME/.config/leftwm/scripts/lock-session", modifier: ["modkey", "Control"], key: "l"),

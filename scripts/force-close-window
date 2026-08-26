@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v xprop >/dev/null 2>&1 \
+  || ! command -v xkill >/dev/null 2>&1; then
+  exit 1
+fi
+
+active_window="$(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null || true)"
+window_id="${active_window##* }"
+
+case "$window_id" in
+  0x[0-9a-fA-F]*) ;;
+  *) exit 0 ;;
+esac
+
+if [ "$window_id" != "0x0" ]; then
+  xkill -id "$window_id" >/dev/null 2>&1
+fi
+
