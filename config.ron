@@ -45,6 +45,9 @@
     ],
     layout_mode: Workspace,
     insert_behavior: Bottom,
+    // Hide inactive tags by unmapping their windows. Moving them off-screen makes
+    // Picom mistake a tag switch for a very large geometry resize animation.
+    window_hiding_strategy: Unmap,
     scratchpad: [
         (name: "Alacritty", value: "alacritty --config-file $HOME/.config/leftwm/themes/current/alacritty/alacritty.toml", x: 860, y: 390, height: 300, width: 200),
     ],
