@@ -21,6 +21,10 @@ if [ -f "/tmp/leftwm-theme-down" ]; then
 fi
 ln -s "$SCRIPTPATH"/down /tmp/leftwm-theme-down
 
+# Permanently apply the repository-owned GTK 3/4 glass palette. Existing local
+# files are backed up once under ~/.local/state/tanhe-leftwm-theme/gtk-backup.
+"$SCRIPTPATH"/scripts/apply-gtk-theme
+
 # start eww daemon
 mkdir -p "$HOME"/.config/eww
 ln -sfn "$EWW_CONFIG_SOURCE" "$EWW_CONFIG"

@@ -273,6 +273,7 @@
   :monitor 0
   :class "bar0"
   :windowtype "dock"
+  :stacking "bg"
   :geometry (geometry :x "0%"
                       :y "0%"
                       :width "100%"

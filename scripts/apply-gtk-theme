@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+set -u
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+THEME_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}/tanhe-leftwm-theme"
+BACKUP_DIR="$STATE_HOME/gtk-backup"
+
+declare -a TARGETS=(
+  "$CONFIG_HOME/gtk-3.0/gtk.css|$THEME_DIR/gtk/glass.css|gtk-3.0-gtk.css"
+  "$CONFIG_HOME/gtk-3.0/settings.ini|$THEME_DIR/gtk/settings.ini|gtk-3.0-settings.ini"
+  "$CONFIG_HOME/gtk-4.0/gtk.css|$THEME_DIR/gtk/glass.css|gtk-4.0-gtk.css"
+  "$CONFIG_HOME/gtk-4.0/settings.ini|$THEME_DIR/gtk/settings.ini|gtk-4.0-settings.ini"
+)
+
+declare -a GSETTINGS=(
+  "org.gnome.desktop.interface|gtk-theme|Dracula"
+  "org.gnome.desktop.interface|icon-theme|Dracula"
+  "org.gnome.desktop.interface|cursor-theme|Adwaita"
+  "org.gnome.desktop.interface|color-scheme|prefer-dark"
+)
+
+install_link() {
+  local target="$1"
+  local source="$2"
+  local backup_name="$3"
+  local current_source backup
+
+  current_source="$(readlink -f -- "$target" 2>/dev/null || true)"
+  if [ -L "$target" ] && [ "$current_source" = "$source" ]; then
+    return
+  fi
+
+  if [ -d "$target" ] && [ ! -L "$target" ]; then
+    printf 'Refusing to replace directory: %s\n' "$target" >&2
+    return 1
+  fi
+
+  mkdir -p -- "$(dirname -- "$target")" "$BACKUP_DIR"
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    backup="$BACKUP_DIR/$backup_name"
+    if [ -e "$backup" ] || [ -L "$backup" ]; then
+      backup="$backup.$(date +%Y%m%d-%H%M%S).$$"
+    fi
+    mv -- "$target" "$backup"
+    printf 'Backed up %s to %s\n' "$target" "$backup"
+  fi
+
+  ln -s -- "$source" "$target"
+}
+
+apply_gsettings() {
+  local entry schema key value
+
+  if ! command -v gsettings >/dev/null 2>&1 \
+    || [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    return
+  fi
+
+  for entry in "${GSETTINGS[@]}"; do
+    IFS='|' read -r schema key value <<<"$entry"
+    if gsettings list-schemas 2>/dev/null | grep -Fxq "$schema"; then
+      gsettings set "$schema" "$key" "$value" >/dev/null 2>&1 || true
+    fi
+  done
+}
+
+main() {
+  local entry target source backup_name
+
+  for entry in "${TARGETS[@]}"; do
+    IFS='|' read -r target source backup_name <<<"$entry"
+    install_link "$target" "$source" "$backup_name"
+  done
+
+  apply_gsettings
+}
+
+main "$@"
